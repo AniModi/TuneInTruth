@@ -16,7 +16,7 @@ interface NewsArticle {
 
 
 const MainPage: React.FC<MainPageProps> = ({ setPage }) => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [articleLink, setArticleLink] = useState<string>("");
   const [newsArticle, setNewsArticle] = useState<NewsArticle | null>(null);
 
