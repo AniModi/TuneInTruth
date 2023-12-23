@@ -25,7 +25,7 @@ function createSpinner() {
   spinner.style.borderTop = "5px solid #3498db";
   spinner.style.animation = "spin 1s linear infinite";
   document.body.appendChild(spinner);
-  document.body.style.overflow = 'hidden'
+  document.body.style.overflow = "hidden";
 }
 
 async function fun() {
@@ -57,7 +57,7 @@ async function fun() {
     const spinner = document.getElementById("mySpinner");
     if (!spinner) return;
     spinner.parentNode?.removeChild(spinner);
-    document.body.style.overflow = 'auto'
+    document.body.style.overflow = "auto";
   }
 }
 
@@ -76,21 +76,16 @@ main();
 
 const fetchNews = async (articleLink: string) => {
   const token: any = await chrome.storage.sync.get(["token"]);
-  const res = await fetch(
-    "https://simple-backend-0b6s.onrender.com/api/news-data",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token.token,
-      },
-      body: JSON.stringify({
-        url: articleLink,
-      }),
-    }
-  );
-  const news = await res.json();
+  const { Readability } = require("@mozilla/readability");
+  const doc = window.document.cloneNode(true);
+  let article = new Readability(doc).parse();
 
+  const headline = article.title;
+  const content = article.textContent;
+  const news = {
+    headline: headline,
+    content: content,
+  };
   const res1 = await fetch(
     "https://simple-backend-0b6s.onrender.com/api/rhyme",
     {
