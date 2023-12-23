@@ -66,7 +66,7 @@ function main() {
     changes: { [key: string]: chrome.storage.StorageChange },
     areaName: string
   ) {
-    if (changes["action"].newValue) {
+    if (changes["action"]?.newValue) {
       fun();
     }
   });
