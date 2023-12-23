@@ -30,6 +30,7 @@ const LoginComponent: React.FC<MainPageProps> = ({ setPage }) => {
     const token = (await res.json()).token;
 
     await chrome.storage.sync.set({token: token});
+    await chrome.storage.sync.set({email: email});
     setPage(0);
   };
 

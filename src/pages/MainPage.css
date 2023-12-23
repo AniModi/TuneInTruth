@@ -1,23 +1,9 @@
 .news-article-container {
-  width: 300px;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  margin: 20px auto;
-  text-align: center;
-}
-
-label {
-  display: block;
-  margin-bottom: 10px;
-}
-
-input {
   width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
-  box-sizing: border-box;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 button {
@@ -32,38 +18,4 @@ button {
 
 button:hover {
   background-color: #0056b3;
-}
-
-h2 {
-  margin-top: 20px;
-}
-
-.article-info {
-  text-align: left;
-}
-
-.article-info p {
-  margin-bottom: 10px;
-}
-
-.article-info strong {
-  margin-right: 5px;
-}
-
-.article-info a {
-  color: #007bff;
-  text-decoration: none;
-  font-weight: bold;
-}
-
-.article-info a:hover {
-  color: #0056b3;
-}
-
-
-.spinner {
-  padding: 2rem 0;
-  width: 300px;
-  display: flex;
-  justify-content: center;
 }
