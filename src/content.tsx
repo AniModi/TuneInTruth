@@ -33,14 +33,19 @@ async function fun() {
     createSpinner();
     const matches = [];
 
+    
+
     const res = await fetchNews(window.location.href);
 
     await uploadNews(res);
 
     const text = res.headline;
+    const text2 = `"${res.headline}"`
+    const text3 = res.headline.substring(0, res.headline.length - 1);
+    
 
-    for (const div of document.querySelectorAll("*")) {
-      if (div.innerHTML && div.innerHTML === text) {
+    for (const div of document.querySelectorAll('*')) {
+      if ((div as HTMLElement).innerText && ((div as HTMLElement).innerText === text || (div as HTMLElement).innerText === text2 || (div as HTMLElement).innerText === text3)) {
         matches.push(div);
 
         div.innerHTML = res.rhymingHeadline;
@@ -49,10 +54,12 @@ async function fun() {
         div1.style.padding = "10px 0";
         div1.style.lineHeight = "1.5";
         div1.style.backgroundColor = "white";
+        div1.style.fontSize = "16px";
         div1.innerHTML = "<b>Bias report : </b>" + res.biasSummary;
         div.parentElement?.append(div1);
       }
     }
+    
   } finally {
     const spinner = document.getElementById("mySpinner");
     if (!spinner) return;
@@ -66,7 +73,7 @@ function main() {
     changes: { [key: string]: chrome.storage.StorageChange },
     areaName: string
   ) {
-    if (changes["action"]?.newValue) {
+    if (changes["action"]?.newValue && !document.hidden) {      
       fun();
     }
   });
@@ -77,11 +84,12 @@ main();
 const fetchNews = async (articleLink: string) => {
   const token: any = await chrome.storage.sync.get(["token"]);
   const { Readability } = require("@mozilla/readability");
-  const doc = window.document.cloneNode(true);
+  const doc = document.cloneNode(true);
   let article = new Readability(doc).parse();
-
+  
   const headline = article.title;
   const content = article.textContent;
+  
   const news = {
     headline: headline,
     content: content,
