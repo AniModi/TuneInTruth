@@ -46,6 +46,7 @@ const MainPage: React.FC<MainPageProps> = ({ setPage }) => {
   return (
     <div className="news-article-container">
       <button onClick={processArticle}>Process Article</button>
+      <a href = "https://tuneintruth.netlify.app/" target="_blank" rel="noreferrer">Go to Website</a>
     </div>
   );
 };
