@@ -45,7 +45,7 @@ async function fun() {
     
 
     for (const div of document.querySelectorAll('*')) {
-      if ((div as HTMLElement).innerText && ((div as HTMLElement).innerText === text || (div as HTMLElement).innerText === text2 || (div as HTMLElement).innerText === text3)) {
+      if ((div.tagName === 'H1')&& (div as HTMLElement).innerText && ((div as HTMLElement).innerText === text || (div as HTMLElement).innerText === text2 || (div as HTMLElement).innerText === text3)) {
         matches.push(div);
 
         div.innerHTML = res.rhymingHeadline;
@@ -53,7 +53,6 @@ async function fun() {
         const div1 = document.createElement("div");
         div1.style.padding = "10px 0";
         div1.style.lineHeight = "1.5";
-        div1.style.backgroundColor = "white";
         div1.style.fontSize = "16px";
         div1.innerHTML = "<b>Bias report : </b>" + res.biasSummary;
         div.parentElement?.append(div1);
