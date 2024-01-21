@@ -1,82 +1,40 @@
-import { useState } from "react";
-import "./LoginComponent.css";
+import { useEffect } from 'react';
+import './LoginComponent.css';
 
 interface MainPageProps {
   setPage: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const LoginComponent: React.FC<MainPageProps> = ({ setPage }) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const handleLogin = async (e: any) => {
-    e.preventDefault();
+  useEffect(() => {
+    const checkStorage = async () => {
+      const [token, email] = await Promise.all([
+        chrome.storage.sync.get(['token']),
+        chrome.storage.sync.get(['email']),
+      ]);
 
-    const res = await fetch("https://simple-backend-0b6s.onrender.com/api/auth/login", {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        email: email,
-        password: password
-      })
-    });
+      if (token && email && token.token && email.email) {
+        setPage(0);        
+      }
+    };
 
-    if(res.status !== 200) {
-      alert("Try again");
-      return;
-    }
+    checkStorage();
 
-    const token = (await res.json()).token;
+    const interval = setInterval(checkStorage, 2000);
 
-    await chrome.storage.sync.set({token: token});
-    await chrome.storage.sync.set({email: email});
-    setPage(0);
-  };
+    return () => clearInterval(interval);
+  }, [setPage]);
 
   return (
     <div className="login-container">
-      <div className="login-form">
-        <h2>Login</h2>
-        <form>
-          <label htmlFor="email">Email:</label>
-          <input
-            type="text"
-            id="email"
-            name="email"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-            }}
-            required
-          />
-
-          <label htmlFor="password">Password:</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-            }}
-            required
-          />
-
-          <button type="submit" onClick={handleLogin}>
-            Login
-          </button>
-        </form>
-
-        <p
-          className="toggle-text"
-          onClick={() => {
-            setPage(2);
-          }}
-        >
-          Don't have an account? Sign Up
-        </p>
-      </div>
+      <a
+        href="https://tuneintruth-2.vercel.app/api/auth/signin"
+        target="_blank"
+        className="google-connect-button"
+        rel="noreferrer"
+      >
+        Connect with Google
+      </a>
     </div>
   );
 };
