@@ -7,6 +7,9 @@ Welcome to the TuneInTruth Chrome extension! This extension transforms major hea
 ## Supported Newspaper Sites
 
 - [x] The Times of India
+- [x] Wion
+- [x] ANI
+- [x] Indian Express
 
 
 ## Installation
@@ -14,19 +17,20 @@ Welcome to the TuneInTruth Chrome extension! This extension transforms major hea
 To install the extension, follow these steps:
 
 1. Clone the front-end repository:
+
    ```bash
    git clone https://github.com/AniModi/TuneInTruth.git
    ```
-2. Navigate to the cloned directory:
-   ```bash
-   cd rhyme-and-reflect-frontend
-   ```
-3. Install dependencies:
-   ```bash
-   npm install
-   ```
-4. Build the project:
+3. Unpack the dist directory in "chrome://extensions/" after turning on developer mode.
+
+
+## Update extension
+
+If you made any changes to the extension code, follow these steps to update the code.
+
+1. Build the project:
+   
    ```bash
    npm run build
    ```
-5. Unpack the dist directory in "chrome://extensions/" after turning on developer mode.
+3. If you have updated the content file, run the above command and reload the extension at the "chrome://extensions/" to update the changes.
