@@ -8,6 +8,9 @@ module.exports = {
         content: "./src/content.tsx",
     },
     mode: "production",
+    optimization: {
+        minimize: false,
+    },
     module: {
         rules: [
             {
