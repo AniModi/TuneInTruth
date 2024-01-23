@@ -113,7 +113,7 @@ function extractBody() {
     "ul",
   ];
 
-  let content = "";
+  const texts : string[] = [];
 
   segmentationTags.forEach((tag) => {
     const elements = document.getElementsByTagName(tag);
@@ -127,16 +127,32 @@ function extractBody() {
 
       if (classification >= 0) {
         const textContent = processArticleText(element.textContent.trim());
-        if (textContent.split(' ').length < 30) {
+        if (textContent.split(" ").length < 30) {
           continue;
         }
-        content += textContent;
+        texts.push(textContent);
       }
     }
   });
 
-  
-  if(content.length > 4500) {
+  for (let i = 0; i < texts.length; i++) {
+    for (let j = 0; j < texts.length; j++) {
+      if (i === j) {
+        continue;
+      }
+      if(texts[i].includes(texts[j])) {
+        texts.splice(j, 1);
+      }
+    }
+  }
+
+  let content = "";
+
+  for(let i = 0; i < texts.length; i ++) {
+    content += texts[i];
+  }
+
+  if (content.length > 4500) {
     console.log(content.slice(0, 4500));
     return content.slice(0, 4500);
   }

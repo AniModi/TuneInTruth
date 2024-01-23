@@ -18380,7 +18380,7 @@ function extractBody() {
         "tr",
         "ul",
     ];
-    let content = "";
+    const texts = [];
     segmentationTags.forEach((tag) => {
         const elements = document.getElementsByTagName(tag);
         for (let i = 0; i < elements.length; i++) {
@@ -18390,13 +18390,27 @@ function extractBody() {
             const classification = classifyBlock(elementContent);
             if (classification >= 0) {
                 const textContent = processArticleText(element.textContent.trim());
-                if (textContent.split(' ').length < 30) {
+                if (textContent.split(" ").length < 30) {
                     continue;
                 }
-                content += textContent;
+                texts.push(textContent);
             }
         }
     });
+    for (let i = 0; i < texts.length; i++) {
+        for (let j = 0; j < texts.length; j++) {
+            if (i === j) {
+                continue;
+            }
+            if (texts[i].includes(texts[j])) {
+                texts.splice(j, 1);
+            }
+        }
+    }
+    let content = "";
+    for (let i = 0; i < texts.length; i++) {
+        content += texts[i];
+    }
     if (content.length > 4500) {
         console.log(content.slice(0, 4500));
         return content.slice(0, 4500);
@@ -18421,9 +18435,8 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 
 
 const backendURL = "https://tuneintruth-2.vercel.app";
-// Set the default timeout for Axios requests
 const axiosInstance = lib_axios.create({
-    timeout: 120000, // 2 minutes
+    timeout: 120000,
 });
 function fun() {
     var _a;
