@@ -1,39 +1,30 @@
 import Cookies from "js-cookie";
+import axios from "axios";
 import { createSpinner } from "./utils/createSpinner";
+import { getTitle, getTitleTag } from "./utils/processTitle";
+import { extractBody } from "./utils/processBody";
+
 const backendURL = "https://tuneintruth-2.vercel.app";
+
+const axiosInstance = axios.create({
+  timeout: 120000,
+});
 
 async function fun() {
   try {
     createSpinner();
-    const matches = [];
 
+    const div = getTitleTag();
     const res = await fetchNews(window.location.href);
 
+    div.innerHTML = res.rhymingHeadline;
+    const div1 = document.createElement("div");
+    div1.style.padding = "10px 0";
+    div1.style.lineHeight = "1.5";
+    div1.style.fontSize = "16px";
+    div1.innerHTML = "<b>Bias report : </b>" + res.biasSummary;
+    div.append(div1);
     await uploadNews(res);
-    const text = res.headline;
-    const text2 = `"${res.headline}"`;
-    const text3 = res.headline.substring(0, res.headline.length - 1);
-
-    for (const div of document.querySelectorAll("*")) {
-      if (
-        div.tagName === "H1" &&
-        (div as HTMLElement).innerText &&
-        ((div as HTMLElement).innerText === text ||
-          (div as HTMLElement).innerText === text2 ||
-          (div as HTMLElement).innerText === text3)
-      ) {
-        matches.push(div);
-
-        div.innerHTML = res.rhymingHeadline;
-
-        const div1 = document.createElement("div");
-        div1.style.padding = "10px 0";
-        div1.style.lineHeight = "1.5";
-        div1.style.fontSize = "16px";
-        div1.innerHTML = "<b>Bias report : </b>" + res.biasSummary;
-        div.parentElement?.append(div1);
-      }
-    }
   } finally {
     const spinner = document.getElementById("mySpinner");
     if (!spinner) return;
@@ -43,10 +34,9 @@ async function fun() {
 }
 
 async function main() {
-  chrome.storage.onChanged.addListener(async function (
-    changes: { [key: string]: chrome.storage.StorageChange },
-    areaName: string
-  ) {
+  chrome.storage.onChanged.addListener(async function (changes: {
+    [key: string]: chrome.storage.StorageChange;
+  }) {
     if (changes["action"]?.newValue && !document.hidden) {
       fun();
     }
@@ -58,7 +48,6 @@ async function main() {
   if (Cookies.get("email")) {
     await chrome.storage.sync.set({ email: Cookies.get("email") });
   }
-
 }
 
 main();
@@ -66,125 +55,128 @@ main();
 const fetchNews = async (articleLink: string) => {
   const token: any = await chrome.storage.sync.get(["token"]);
 
-  const { Readability } = require("@mozilla/readability");
-  const doc = document.cloneNode(true);
-  let article = new Readability(doc).parse();
-
-  const headline = article.title;
-  const content = article.textContent;
-
+  const headline = getTitle();
+  const content = extractBody();
   const news = {
     headline: headline,
     content: content,
   };
-  const res1 = await fetch(backendURL + "/api/headlines/get-rhyming", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + token.token,
-    },
-    body: JSON.stringify({
+
+  try {
+    const res1 = await axiosInstance.post(
+      backendURL + "/api/headlines/get-rhyming",
+      {
+        headline: news.headline,
+        link: articleLink,
+        override: false,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token.token,
+        },
+      }
+    );
+
+    if (res1.status === 401) {
+      await chrome.storage.sync.clear();
+      window.location.reload();
+    }
+
+    const rhymingHeadline = res1.data;
+
+    const res2 = await axiosInstance.post(
+      backendURL + "/api/bias",
+      {
+        content: news.content,
+        link: articleLink,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token.token,
+        },
+      }
+    );
+
+    if (res2.status === 401) {
+      await chrome.storage.sync.clear();
+      window.location.reload();
+    }
+
+    const biasSummary = res2.data;
+
+    return {
       headline: news.headline,
-      link: articleLink,
-      override: false,
-    }),
-  });
-
-  if (res1.status === 401) {
-    await chrome.storage.sync.clear();
-    window.location.reload();
+      rhymingHeadline: rhymingHeadline,
+      biasSummary: biasSummary,
+      articleLink: articleLink,
+    };
+  } catch (error) {
+    console.error(error);
+    throw error;
   }
-
-  const rhymingHeadline = await res1.json();
-
-  const res2 = await fetch(backendURL + "/api/bias", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + token.token,
-    },
-    body: JSON.stringify({
-      content: news.content,
-      link: articleLink,
-    }),
-  });
-
-  if (res2.status === 401) {
-    await chrome.storage.sync.clear();
-    window.location.reload();
-  }
-
-  const biasSummary = await res2.json();
-
-  return {
-    headline: news.headline,
-    rhymingHeadline: rhymingHeadline,
-    biasSummary: biasSummary,
-    articleLink: articleLink,
-  };
 };
 
 const uploadNews = async (news: any) => {
   try {
     const token: any = await chrome.storage.sync.get(["token"]);
     const email = await chrome.storage.sync.get(["email"]);
-    let res = await fetch(backendURL + "/api/mongodb/push-user-news", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token.token,
-      },
-      body: JSON.stringify({
+
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token.token,
+    };
+
+    let res = await axiosInstance.post(
+      backendURL + "/api/mongodb/push-user-news",
+      {
         headline: news.headline,
         rhyme: news.rhymingHeadline,
         bias: news.biasSummary,
         link: news.articleLink,
         email: email.email,
-      }),
-    });
+      },
+      { headers }
+    );
 
     if (res.status === 401) {
       await chrome.storage.sync.clear();
       window.location.reload();
     }
-    res = await fetch(backendURL + "/api/mongodb/push-news", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token.token,
-      },
-      body: JSON.stringify({
+
+    res = await axiosInstance.post(
+      backendURL + "/api/mongodb/push-news",
+      {
         headline: news.headline,
         rhyme: news.rhymingHeadline,
         bias: news.biasSummary,
         link: news.articleLink,
-      }),
-    });
+      },
+      { headers }
+    );
 
     if (res.status === 401) {
       await chrome.storage.sync.clear();
       window.location.reload();
     }
 
-    res = await fetch(backendURL + "/api/pinecone/upsert", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token.token,
-      },
-      body: JSON.stringify({
+    res = await axiosInstance.post(
+      backendURL + "/api/pinecone/upsert",
+      {
         headline: news.headline,
         rhyme: news.rhymingHeadline,
         link: news.articleLink,
-      }),
-    });
+      },
+      { headers }
+    );
 
     if (res.status === 401) {
       await chrome.storage.sync.clear();
       window.location.reload();
     }
   } catch (err) {
-    console.log(err);
+    console.error(err);
   }
 };
 
